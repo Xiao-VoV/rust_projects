@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 rand = "*"
 piston_window = "*"
+aio = "0.1.0"

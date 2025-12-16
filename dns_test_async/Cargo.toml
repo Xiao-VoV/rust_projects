@@ -1,0 +1,11 @@
+[package]
+name = "dns_test_async"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+# DNS 解析库 (原 trust-dns)
+hickory-resolver = { version = "0.24", features = ["tokio-runtime"] }
+# 终端颜色输出
+colored = "2.0"

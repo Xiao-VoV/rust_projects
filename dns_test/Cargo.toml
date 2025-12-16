@@ -1,0 +1,12 @@
+[package]
+name = "dns_test"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = "0.12"
+futures = "0.3"
+serde = { version = "1.0", features = ["derive"] } # 新增
+serde_json = "1.0"                                # 新增
+clap = { version = "4.5.51", features = ["derive"] }

@@ -1,0 +1,17 @@
+[
+  "https://www.google.com",
+  "https://www.rust-lang.org",
+  "https://www.microsoft.com",
+  "https://www.apple.com",
+  "https://www.amazon.com",
+  "https://www.github.com",
+  "https://www.baidu.com",
+  "https://www.cloudflare.com",
+  "https://httpbin.org/status/404",
+  "https://httpbin.org/status/500",
+  "https://httpbin.org/delay/5",
+  "https://this-is-a-fake-domain-that-will-fail.com",
+  "https://www.wikipedia.org",
+  "https://www.youtube.com",
+  "https://www.reddit.com"
+]

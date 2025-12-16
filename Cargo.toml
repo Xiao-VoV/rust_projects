@@ -1,0 +1,2 @@
+[workspace]
+members = [ "async_crawler", "chat/client", "chat/server", "dns_test", "domain_sort", "port_scanner", "port_scanner_async"]

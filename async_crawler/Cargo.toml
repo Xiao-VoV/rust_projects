@@ -1,0 +1,10 @@
+[package]
+name = "async_crawler"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+async-std = "1.13.2"
+html5ever = "0.35.0"
+surf = "2.3.2"
+url = "2.5.7"

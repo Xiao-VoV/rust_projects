@@ -3,4 +3,4 @@ resolver = "3"
 members = [ "async_crawler", "chat/client", 
 "chat/server", "dns_test", "domain_sort", 
 "port_scanner", "port_scanner_async",
-"aio_test","snake_game2", "dns_test_async"]
+"aio_test","snake_game2", "dns_test_async", "proxy"]

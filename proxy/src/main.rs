@@ -1,8 +1,10 @@
-use std::error::Error;
+use std::{collections::btree_set, error::Error};
 use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::{TcpListener, TcpStream},
 };
+mod proxy5;
+use proxy5::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -51,7 +53,31 @@ async fn process(mut socket: TcpStream) -> Result<(), Box<dyn Error>> {
     let mut methods = vec![0u8; n_methods];
     socket.read_exact(&mut methods).await?;
 
-    socket.write_all(&[0x05, 0x00]).await?;
+    let mut support_auth = false;
+    for m in methods {
+        if m == 0x01 {
+            support_auth = true;
+            break;
+        }
+    }
+    let set_pass = false;
+    if !set_pass {
+        socket.write_all(&[0x05, 0x00]).await?;
+    } else {
+        if support_auth {
+            socket.write_all(&[0x05, 0x02]).await?;
+        } else {
+            if !support_auth {
+                socket.write_all(&[0x05, 0xFF]).await?;
+                return Err("client don't support auth".into());
+            }
+        }
+    }
+
+    // ------------------------------------------
+    if set_pass {
+        proxy5::auth(&mut socket, "root", "1234").await?;
+    }
 
     // ------------------------------------------
 

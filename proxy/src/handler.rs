@@ -122,11 +122,42 @@ pub async fn process(mut socket: TcpStream, config: &UserConfig) -> Result<(), B
     ];
     socket.write_all(&reply).await?;
 
-    // 双向拷贝
-    match tokio::io::copy_bidirectional(&mut socket, &mut server_socket).await {
-        Ok((up, down)) => debug!("[Relay] 结束: 上行 {}b, 下行 {}b", up, down),
-        Err(e) => warn!("[Relay] 中断: {}", e),
-    }
+    transfer(&mut socket, &mut server_socket).await?;
 
     Ok(())
+}
+
+async fn transfer(client: &mut TcpStream, server: &mut TcpStream) -> Result<(), Box<dyn Error>> {
+    #[cfg(target_os = "linux")]
+    {
+        use tokio_splice::zero_copy_bidirectional;
+
+        // splice 需要文件描述符，tokio 的 TcpStream 实现了 AsRawFd
+        match zero_copy_bidirectional(client, server).await {
+            Ok((up, down)) => {
+                debug!("Splice 传输完成: 上行 {}b, 下行 {}b", up, down);
+                Ok(())
+            }
+            Err(e) => {
+                error!("Splice 传输错误: {}", e);
+                Err(e.into())
+            }
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    {
+        // 非 Linux (macOS/Windows) 使用普通的用户态拷贝
+        match tokio::io::copy_bidirectional(client, server).await {
+            Ok((up, down)) => {
+                debug!("Copy 传输完成: 上行 {}b, 下行 {}b", up, down);
+                Ok(())
+            }
+            Err(e) => {
+                // copy_bidirectional 有时在断开时会报 ConnectionReset，这其实不算严重错误
+                debug!("Copy 传输中断: {}", e);
+                Ok(())
+            }
+        }
+    }
 }

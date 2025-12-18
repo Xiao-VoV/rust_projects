@@ -81,7 +81,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let config_clone = config.clone();
 
         tokio::spawn(async move {
-            // as_ref() 把 Option<UserConfig> 变成 Option<&UserConfig>
             if let Err(e) = handler::process(socket, config_clone.as_ref()).await {
                 error!("[Error] from {:?} : {}", addr, e);
             }

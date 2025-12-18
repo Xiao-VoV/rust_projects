@@ -3432,6 +3432,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "tokio",
+ "tokio-splice",
  "tracing",
  "tracing-subscriber",
 ]
@@ -4627,6 +4628,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbae76ab933c85776efabc971569dd6119c580d8f5d448769dec1764bf796ef2"
 dependencies = [
  "native-tls",
+ "tokio",
+]
+
+[[package]]
+name = "tokio-splice"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2278c685d37b5250c28f0151b46403372cbf32d2dc99635646cad729da202805"
+dependencies = [
+ "libc",
  "tokio",
 ]
 

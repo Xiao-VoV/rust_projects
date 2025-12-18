@@ -3,16 +3,14 @@ use std::time::Duration;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpStream;
 use tokio::time::timeout;
+use tracing::{debug, error, info, warn};
 
 // 引入我们封装好的模块
 use crate::auth::{self, UserConfig};
 use crate::consts::*;
 use crate::protocol::SocksRequest;
 
-pub async fn process(
-    mut socket: TcpStream,
-    config: Option<&UserConfig>,
-) -> Result<(), Box<dyn Error>> {
+pub async fn process(mut socket: TcpStream, config: &UserConfig) -> Result<(), Box<dyn Error>> {
     // ==========================================
     // 阶段 1: 协商 (Handshake)
     // ==========================================
@@ -33,7 +31,7 @@ pub async fn process(
 
     let mut should_auth = false;
 
-    if let Some(_user_config) = config {
+    if let Some(_user_config) = &config.user {
         if methods.contains(&METHOD_PASSWORD) {
             should_auth = true;
             socket.write_all(&[SOCKS_VERSION, METHOD_PASSWORD]).await?;
@@ -48,7 +46,7 @@ pub async fn process(
     }
 
     if should_auth {
-        auth::perform_password_auth(&mut socket, config.unwrap()).await?;
+        auth::perform_password_auth(&mut socket, config.user.as_ref().unwrap()).await?;
     }
     // ==========================================
     // 阶段 2: 请求 (Request) - 【核心重构点】
@@ -58,22 +56,22 @@ pub async fn process(
 
     // 检查命令
     if request.cmd != CMD_CONNECT {
+        warn!("unsupported command:{}", request.cmd);
         return Err("仅支持 CONNECT 命令".into());
     }
 
     let target = request.to_string();
-    println!("[Connect] 目标: {}", target);
+    info!("Connect to: {}", target);
 
     // ==========================================
     // 阶段 3: 转发 (Relay)
     // ==========================================
-    let connect_timeout = Duration::from_secs(5);
+    let connect_timeout = Duration::from_secs(config.timeout as u64);
     let server_socket_result = timeout(connect_timeout, TcpStream::connect(&target)).await;
 
     let mut server_socket = match server_socket_result {
         Err(_) => {
-            eprintln!("[Error] 连接目标超时 (5s): {}", target);
-
+            warn!("连接目标超时 ({}s): {}", config.timeout, target);
             // 返回 0x04 (Host Unreachable) 或者 0x06 (TTL Expired)
             let reply = [
                 SOCKS_VERSION,
@@ -99,7 +97,7 @@ pub async fn process(
                     std::io::ErrorKind::PermissionDenied => REP_CONNECTION_NOT_ALLOWED,
                     _ => REP_HOST_UNREACHABLE,
                 };
-                eprintln!("[Error] 目标主机连接失败：{}({})", target, e);
+                error!("目标主机连接失败：{}({})", target, e);
 
                 let replay = [SOCKS_VERSION, rep, 0x00, ATYP_IPV4, 0, 0, 0, 0, 0, 0];
 
@@ -126,8 +124,8 @@ pub async fn process(
 
     // 双向拷贝
     match tokio::io::copy_bidirectional(&mut socket, &mut server_socket).await {
-        Ok((up, down)) => println!("[Relay] 结束: 上行 {}b, 下行 {}b", up, down),
-        Err(e) => eprintln!("[Relay] 中断: {}", e),
+        Ok((up, down)) => debug!("[Relay] 结束: 上行 {}b, 下行 {}b", up, down),
+        Err(e) => warn!("[Relay] 中断: {}", e),
     }
 
     Ok(())

@@ -8,6 +8,7 @@ mod auth;
 mod consts;
 mod handler;
 mod protocol;
+mod udp;
 
 use auth::UserConfig;
 

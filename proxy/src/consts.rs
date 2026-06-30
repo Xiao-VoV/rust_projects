@@ -47,3 +47,11 @@ pub const REP_CONNECTION_REFUSED: u8 = 0x05;
 pub const REP_TTL_EXPIRED: u8 = 0x06;
 pub const REP_COMMAND_NOT_SUPPORTED: u8 = 0x07;
 pub const REP_ADDRESS_TYPE_NOT_SUPPORTED: u8 = 0x08;
+
+// UDP
+pub const CMD_UDP_ASSOCIATE: u8 = 0x03;
+pub const RSV: u8 = 0x00;
+pub const FRAG: u8 = 0x00; // SOCKS5 分片字段，通常不实现（填0）
+
+pub const MAX_UDP_SIZE: u64 = 65535;
+pub const UDP_TIMEOUT: usize = 300;
